@@ -1,8 +1,3 @@
-<style>
-	img {
-		max-width: 90%;
-	}
-</style>
 <h1>SteamLibApp</h1>
 <p>SteamLibApp helps you browser your Steam Librayr in a more interesting way by showing you the same screenshots used in the store itself. This makes the stuff you already bought look as interesting as the stuff you want to buy, thereby helping you play through your library more completely.</p>
 
