@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steam Library</title>
+    <style>
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 2fr));
+            gap: 10px;
+        }
+        .game {
+            text-align: center;
+            border: 1px solid blue;
+            border-radius: 5px;
+            margin: 10px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        body {
+            background: #000;
+            color: #FDFDFD;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid">
+        {% for game in games %}
+            <div class="game">
+                <h3>{{ game.title }}</h3>
+                {% if game.image_url %}
+                    <a href="steam://run/{{ game.appid }}">
+                        <img src="{{ game.image_url }}" alt="{{ game.title }}">
+                    </a>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
