@@ -38,7 +38,7 @@ def create_tables():
         CREATE TABLE IF NOT EXISTS app_details (
             appid INTEGER PRIMARY KEY,
             title TEXT,
-            image_url TEXT,
+            image_urls TEXT,
             last_updated TIMESTAMP NOT NULL
         )
     ''')
@@ -78,10 +78,12 @@ def get_steam_library(steamid, api_key):
 def get_steam_app_details(appid):
     conn = get_db_connection()
     app = conn.execute('''
-        SELECT appid,title, image_url FROM app_details WHERE appid = ? AND last_updated > ?
+        SELECT appid,title,image_urls FROM app_details WHERE appid = ? AND last_updated > ?
     ''', (appid, datetime.now() - timedelta(days=30))).fetchone()  # Cache for 30 days
     
     if app:
+        result = dict(app)
+        result['image_urls'] = result['image_urls'].split('|')
         return dict(app)
     else:
         global stat_api_calls, stat_api_calls_last_rest
@@ -94,13 +96,19 @@ def get_steam_app_details(appid):
         if None != data and str(appid) in data and data[str(appid)]['success']:
             game_data = data[str(appid)]['data']
             title = game_data.get('name')
-            image_url = game_data['screenshots'][0]['path_full'] if 'screenshots' in game_data else None
-            conn.execute('''
-                INSERT OR REPLACE INTO app_details (appid, title, image_url, last_updated) 
-                VALUES (?, ?, ?, ?)
-            ''', (appid, title, image_url, datetime.now()))
-            conn.commit()
-            return {'title': title, 'image_url': image_url}
+            image_urls = [screenshot['path_full'] for screenshot in game_data['screenshots']] if 'screenshots' in game_data else None
+            if image_urls == None:
+                conn.execute('''
+                    INSERT OR REPLACE INTO app_details (appid, title, image_urls, last_updated) 
+                    VALUES (?, ?, ?, ?)
+                    ''', (appid, title, '[]', datetime.now()))
+            else:
+                conn.execute('''
+                    INSERT OR REPLACE INTO app_details (appid, title, image_urls, last_updated) 
+                    VALUES (?, ?, ?, ?)
+                ''', (appid, title, '|'.join(image_urls), datetime.now()))
+                conn.commit()
+            return {'title': title, 'image_urls': image_urls}
         else:
             print("API call failed!")
             pp.pprint(response)
@@ -113,6 +121,7 @@ def get_steam_app_details(appid):
 @app.route('/library/')
 @app.route('/library/<int:steamid>')
 def library(steamid=0):
+    global stat_api_calls, stat_api_calls_last_rest
     if 0 == steamid:
         steamid = DEFAULT_STEAM_LIBRARY_ID
     games = get_steam_library(steamid, STEAM_API_KEY)
@@ -132,7 +141,7 @@ def library(steamid=0):
         if (stat_api_calls > 0) and (0 == stat_api_calls % 50) and (stat_api_calls_last_rest < stat_api_calls):
             print("Sheesh, give it a rest!")
             stat_api_calls_last_rest = stat_api_calls
-            time.sleep(5)
+            time.sleep(15)
 
     return render_template('library.html', games=game_details)
 
