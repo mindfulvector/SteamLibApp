@@ -78,7 +78,7 @@ def get_steam_library(steamid, api_key):
 def get_steam_app_details(appid):
     conn = get_db_connection()
     app = conn.execute('''
-        SELECT title, image_url FROM app_details WHERE appid = ? AND last_updated > ?
+        SELECT appid,title, image_url FROM app_details WHERE appid = ? AND last_updated > ?
     ''', (appid, datetime.now() - timedelta(days=30))).fetchone()  # Cache for 30 days
     
     if app:
