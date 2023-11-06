@@ -72,7 +72,7 @@ Press CTRL+C to quit
  * Restarting with stat
  * Debugger is active!
  * Debugger PIN: 695-934-644
-</p>
+</pre>
 
 <p>You can now to go <a href="http://127.0.0.1:5000/library/">http://127.0.0.1:5000/library/</a> to view your Steam Library.</p>
 
